@@ -87,3 +87,63 @@ int compare_valcount(const void *a, const void *b) {
   return ((const valcount*)b)->count - ((const valcount*)a)->count;
 }
 
+/* void */
+/* deconstruct_subarray(ArrayType *array, */
+/*                      Oid elmtype, */
+/*                      int elmlen, bool elmbyval, char elmalign, */
+/*                      Datum **elemsp, bool **nullsp, int *nelemsp) */
+/*  { */
+/*      Datum      *elems; */
+/*      bool       *nulls; */
+/*      int         nelems; */
+/*      char       *p; */
+/*      bits8      *bitmap; */
+/*      int         bitmask; */
+/*      int         i; */
+ 
+/*      Assert(ARR_ELEMTYPE(array) == elmtype); */
+ 
+/*      nelems = ArrayGetNItems(ARR_NDIM(array), ARR_DIMS(array)); */
+/*      *elemsp = elems = (Datum *) palloc(nelems * sizeof(Datum)); */
+/*      if (nullsp) */
+/*          *nullsp = nulls = (bool *) palloc0(nelems * sizeof(bool)); */
+/*      else */
+/*          nulls = NULL; */
+/*      *nelemsp = nelems; */
+ 
+/*      p = ARR_DATA_PTR(array); */
+/*      bitmap = ARR_NULLBITMAP(array); */
+/*      bitmask = 1; */
+ 
+/*      for (i = 0; i < nelems; i++) */
+/*      { */
+/*          /\* Get source element, checking for NULL *\/ */
+/*          if (bitmap && (*bitmap & bitmask) == 0) */
+/*          { */
+/*              elems[i] = (Datum) 0; */
+/*              if (nulls) */
+/*                  nulls[i] = true; */
+/*              else */
+/*                  ereport(ERROR, */
+/*                          (errcode(ERRCODE_NULL_VALUE_NOT_ALLOWED), */
+/*                           errmsg("null array element not allowed in this context"))); */
+/*          } */
+/*          else */
+/*          { */
+/*              elems[i] = fetch_att(p, elmbyval, elmlen); */
+/*              p = att_addlength_pointer(p, elmlen, p); */
+/*              p = (char *) att_align_nominal(p, elmalign); */
+/*          } */
+ 
+/*          /\* advance bitmap pointer if any *\/ */
+/*          if (bitmap) */
+/*          { */
+/*              bitmask <<= 1; */
+/*              if (bitmask == 0x100) */
+/*              { */
+/*                  bitmap++; */
+/*                  bitmask = 1; */
+/*              } */
+/*          } */
+/*      } */
+/*  } */

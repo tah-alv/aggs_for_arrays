@@ -3,6 +3,8 @@ EXTENSION = aggs_for_arrays
 EXTENSION_VERSION = 1.3.2
 DATA = $(EXTENSION)--$(EXTENSION_VERSION).sql
 
+# PG_CFLAGS = -fopenmp
+
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
