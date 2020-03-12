@@ -1,4 +1,5 @@
 #include <postgres.h>
+#include <access/tupmacs.h>
 #include <fmgr.h>
 #include <utils/array.h>
 #include <catalog/pg_type.h>
@@ -26,4 +27,4 @@ PG_MODULE_MAGIC;
 #include "array_to_skewness.c"
 #include "array_to_kurtosis.c"
 #include "array_to_sum.c"
-
+#include "subarray_to_sum.c"
