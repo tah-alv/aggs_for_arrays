@@ -105,27 +105,3 @@ RETURNS DOUBLE PRECISION
 AS 'aggs_for_arrays', 'array_to_kurtosis'
 LANGUAGE c IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION 
-array_to_sum(anyarray, int, int)
-RETURNS anyelement
-AS 'aggs_for_arrays', 'array_to_sum'
-LANGUAGE c IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION 
-subarray_to_sum(anyarray, int, int)
-RETURNS anyelement
-AS 'aggs_for_arrays', 'subarray_to_sum'
-LANGUAGE c IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION 
-array_to_sum(anyarray, int)
-RETURNS anyelement
-AS 'aggs_for_arrays', 'array_to_sum'
-LANGUAGE c IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION 
-array_to_sum(anyarray)
-RETURNS anyelement
-AS 'aggs_for_arrays', 'array_to_sum'
-LANGUAGE c IMMUTABLE;
-
