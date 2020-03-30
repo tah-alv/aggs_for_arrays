@@ -1,13 +1,13 @@
 
-Datum subarray_to_sum(PG_FUNCTION_ARGS);
-PG_FUNCTION_INFO_V1(subarray_to_sum);
+Datum subarray_to_count_gt(PG_FUNCTION_ARGS);
+PG_FUNCTION_INFO_V1(subarray_to_count_gt);
 
 /**
  * Returns a sum from an array of numbers.
  * by Todd Hay
  */
 Datum
-subarray_to_sum(PG_FUNCTION_ARGS)
+subarray_to_count_gt(PG_FUNCTION_ARGS)
 {
   // Our arguments:
   ArrayType *vals;
@@ -33,11 +33,10 @@ subarray_to_sum(PG_FUNCTION_ARGS)
   // The size of the input array:
   int valsLength, nargs;
   int startIndex, endIndex;         // start and end indices
+  int valsCount = 0;
 
-  bool resultIsNull = true;
-
-  pgnum v;
   int i;
+  pgnum v;
 
   if (PG_ARGISNULL(0)) {
     ereport(ERROR, (errmsg("Null arrays not accepted")));
@@ -56,15 +55,15 @@ subarray_to_sum(PG_FUNCTION_ARGS)
     ereport(ERROR, (errmsg("Array contains null elements")));
   }
 
+  valsLength = (ARR_DIMS(vals))[0];
+  if (valsLength == 0) PG_RETURN_NULL();
+
   // Determine the array element types.
   valsType = ARR_ELEMTYPE(vals);
 
-  valsLength = (ARR_DIMS(vals))[0];
-
-  if (valsLength == 0) PG_RETURN_NULL();
+  nargs = PG_NARGS();
 
   // Get start and end indices
-  nargs = PG_NARGS();
   switch (nargs) {
   case 1:
     startIndex = 1;
@@ -75,6 +74,7 @@ subarray_to_sum(PG_FUNCTION_ARGS)
     endIndex = valsLength;
     break;
   case 3:
+  case 4:
     startIndex = PG_GETARG_INT32(1);
     endIndex = PG_GETARG_INT32(2);
     break;
@@ -94,63 +94,52 @@ subarray_to_sum(PG_FUNCTION_ARGS)
 
   switch (valsType) {
   case INT2OID:
-    v.i32 = 0;
+    v.i16 = nargs > 3 ? PG_GETARG_INT16(3) : 0;
     for (i = 0; i < valsLength; i++) {
       if (valsNullFlags[i]) {
         continue;
-      }else if (resultIsNull) {
-        resultIsNull = false;}
-      v.i32 += (int32)DatumGetInt16(valsContent[i]);
+      }else if (DatumGetInt16(valsContent[i]) > v.i16) {
+        valsCount++;}
     }
-    if (resultIsNull) PG_RETURN_NULL();
-    else PG_RETURN_INT32(v.i32);
+    break;
   case INT4OID:
-    v.i64 = 0;
+    v.i32 = nargs > 3 ? PG_GETARG_INT32(3) : 0;
     for (i = 0; i < valsLength; i++) {
       if (valsNullFlags[i]) {
         continue;
-      }else if (resultIsNull) {
-        resultIsNull = false;}
-      v.i64 += (int64)DatumGetInt32(valsContent[i]);
+      }else if (DatumGetInt32(valsContent[i]) > v.i32) {
+        valsCount++;}
     }
-    if (resultIsNull) PG_RETURN_NULL();
-    else {
-      PG_RETURN_INT64(v.i64);}
+    break;
   case INT8OID:
-    v.i64 = 0;
+    v.i64 = nargs > 3 ? PG_GETARG_INT64(3) : 0;
     for (i = 0; i < valsLength; i++) {
       if (valsNullFlags[i]) {
         continue;
-      }else if (resultIsNull) {
-        resultIsNull = false;}
-      v.i64 += DatumGetInt64(valsContent[i]);
+      }else if (DatumGetInt64(valsContent[i]) > v.i64) {
+        valsCount++;}
     }
-    if (resultIsNull) PG_RETURN_NULL();
-    else {
-      PG_RETURN_INT64(v.i64);}
+    break;
   case FLOAT4OID:
-    v.f4 = 0.0;
+    v.f4 = nargs > 3 ? PG_GETARG_FLOAT4(3) : 0.0;
     for (i = 0; i < valsLength; i++) {
       if (valsNullFlags[i]) {
         continue;
-      }else if (resultIsNull) {
-        resultIsNull = false;}
-      v.f4 += DatumGetFloat4(valsContent[i]);
+      }else if (DatumGetFloat4(valsContent[i]) > v.f4) {
+        valsCount++;}
     }
-    if (resultIsNull) PG_RETURN_NULL();
-    else PG_RETURN_FLOAT4(v.f4);
+    break;
   case FLOAT8OID:
-    v.f8 = 0.0;
+    v.f8 = nargs > 3 ? PG_GETARG_FLOAT8(3) : 0.0;
     for (i = 0; i < valsLength; i++) {
       if (valsNullFlags[i]) {
         continue;
-      }else if (resultIsNull) {
-        resultIsNull = false;}
-      v.f8 += DatumGetFloat8(valsContent[i]);
+      }else if (DatumGetFloat8(valsContent[i]) > v.f8) {
+        valsCount++;}
     }
-    if (resultIsNull) PG_RETURN_NULL();
-    else PG_RETURN_FLOAT8(v.f8);
+    break;
   default:
     ereport(ERROR, (errmsg("Sum subject must be SMALLINT, INTEGER, BIGINT, REAL, or DOUBLE PRECISION values")));
   }
+  PG_RETURN_INT32(valsCount);
 }

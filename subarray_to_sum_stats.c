@@ -1,31 +1,36 @@
 
-Datum subarray_to_sum(PG_FUNCTION_ARGS);
-PG_FUNCTION_INFO_V1(subarray_to_sum);
+Datum subarray_to_sum_stats(PG_FUNCTION_ARGS);
+PG_FUNCTION_INFO_V1(subarray_to_sum_stats);
 
 /**
- * Returns a sum from an array of numbers.
+ * Returns a sum from an array of integers, indicies of first and last bin > 0, and number of bins > 0.
  * by Todd Hay
  */
 Datum
-subarray_to_sum(PG_FUNCTION_ARGS)
+subarray_to_sum_stats(PG_FUNCTION_ARGS)
 {
   // Our arguments:
   ArrayType *vals;
+  ArrayType *ret;
 
   // The array element type:
   Oid valsType;
 
   // The array element type widths for our input array:
   int16 valsTypeWidth;
-
+  int16 retTypeWidth;
+  
   // The array element type "is passed by value" flags (not really used):
   bool valsTypeByValue;
-
+  bool retTypeByValue;
+  
   // The array element type alignment codes (not really used):
   char valsTypeAlignmentCode;
-
+  char retTypeAlignmentCode;
+  
   // The array contents, as PostgreSQL "Datum" objects:
   Datum *valsContent;
+  Datum *retContent;
 
   // List of "is null" flags for the array contents (not used):
   bool *valsNullFlags;
@@ -33,10 +38,12 @@ subarray_to_sum(PG_FUNCTION_ARGS)
   // The size of the input array:
   int valsLength, nargs;
   int startIndex, endIndex;         // start and end indices
+  int count;
+  int minIndex, maxIndex;
+  int compareValue, sum, binValue, idx;
 
   bool resultIsNull = true;
 
-  pgnum v;
   int i;
 
   if (PG_ARGISNULL(0)) {
@@ -75,6 +82,7 @@ subarray_to_sum(PG_FUNCTION_ARGS)
     endIndex = valsLength;
     break;
   case 3:
+  case 4:
     startIndex = PG_GETARG_INT32(1);
     endIndex = PG_GETARG_INT32(2);
     break;
@@ -92,65 +100,48 @@ subarray_to_sum(PG_FUNCTION_ARGS)
 
   if (startIndex > endIndex) PG_RETURN_NULL();
 
+  
   switch (valsType) {
-  case INT2OID:
-    v.i32 = 0;
-    for (i = 0; i < valsLength; i++) {
-      if (valsNullFlags[i]) {
-        continue;
-      }else if (resultIsNull) {
-        resultIsNull = false;}
-      v.i32 += (int32)DatumGetInt16(valsContent[i]);
-    }
-    if (resultIsNull) PG_RETURN_NULL();
-    else PG_RETURN_INT32(v.i32);
   case INT4OID:
-    v.i64 = 0;
+    minIndex = startIndex + valsLength;
+    maxIndex = 0;
+    compareValue = nargs > 3 ? PG_GETARG_INT32(3) : 0;
+    sum = 0;
+    count = 0;
     for (i = 0; i < valsLength; i++) {
       if (valsNullFlags[i]) {
         continue;
       }else if (resultIsNull) {
         resultIsNull = false;}
-      v.i64 += (int64)DatumGetInt32(valsContent[i]);
+      binValue = DatumGetInt32(valsContent[i]);
+      sum += binValue;
+      if (binValue > compareValue) {
+        idx = i + startIndex;
+        count += 1;
+        if (idx > maxIndex)
+          maxIndex = idx;
+        if (idx < minIndex)
+          minIndex = idx;
+      }
     }
-    if (resultIsNull) PG_RETURN_NULL();
-    else {
-      PG_RETURN_INT64(v.i64);}
-  case INT8OID:
-    v.i64 = 0;
-    for (i = 0; i < valsLength; i++) {
-      if (valsNullFlags[i]) {
-        continue;
-      }else if (resultIsNull) {
-        resultIsNull = false;}
-      v.i64 += DatumGetInt64(valsContent[i]);
-    }
-    if (resultIsNull) PG_RETURN_NULL();
-    else {
-      PG_RETURN_INT64(v.i64);}
-  case FLOAT4OID:
-    v.f4 = 0.0;
-    for (i = 0; i < valsLength; i++) {
-      if (valsNullFlags[i]) {
-        continue;
-      }else if (resultIsNull) {
-        resultIsNull = false;}
-      v.f4 += DatumGetFloat4(valsContent[i]);
-    }
-    if (resultIsNull) PG_RETURN_NULL();
-    else PG_RETURN_FLOAT4(v.f4);
-  case FLOAT8OID:
-    v.f8 = 0.0;
-    for (i = 0; i < valsLength; i++) {
-      if (valsNullFlags[i]) {
-        continue;
-      }else if (resultIsNull) {
-        resultIsNull = false;}
-      v.f8 += DatumGetFloat8(valsContent[i]);
-    }
-    if (resultIsNull) PG_RETURN_NULL();
-    else PG_RETURN_FLOAT8(v.f8);
+    if (minIndex == startIndex + valsLength)
+      minIndex = 0;
+    break;
   default:
-    ereport(ERROR, (errmsg("Sum subject must be SMALLINT, INTEGER, BIGINT, REAL, or DOUBLE PRECISION values")));
+    ereport(ERROR, (errmsg("Sum stats subject must be INTEGER valued")));
+  }
+
+  retContent = palloc0(sizeof(Datum) * 4);
+  retContent[0] = Int32GetDatum(sum);
+  retContent[1] = Int32GetDatum(minIndex);
+  retContent[2] = Int32GetDatum(maxIndex);
+  retContent[3] = Int32GetDatum(count);
+
+  if (resultIsNull) {
+    PG_RETURN_NULL();
+  }else {
+    get_typlenbyvalalign(INT4OID, &retTypeWidth, &retTypeByValue, &retTypeAlignmentCode);
+    ret = construct_array(retContent, 4, INT4OID, retTypeWidth, retTypeByValue, retTypeAlignmentCode);
+    PG_RETURN_ARRAYTYPE_P(ret);
   }
 }
