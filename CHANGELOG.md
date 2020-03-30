@@ -1,3 +1,7 @@
+## 1.4.0 - 2020-04-01
+
+Add subarray functions
+
 ## 1.3.2 - 2018-03-07
 
 Fixed min/max functions operating on arrays with a leading null.
