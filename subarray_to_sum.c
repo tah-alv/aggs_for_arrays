@@ -83,15 +83,18 @@ subarray_to_sum(PG_FUNCTION_ARGS)
   }
 
   if (endIndex > valsLength) ereport(ERROR, (errmsg("Stop index must be less than or equal to vector length")));
+
+  if (startIndex < 1) ereport(ERROR, (errmsg("Start index must be greater than or equal to 1")));
     
+  if (startIndex > endIndex) PG_RETURN_NULL();
+
   get_typlenbyvalalign(valsType, &valsTypeWidth, &valsTypeByValue, &valsTypeAlignmentCode);
 
   // Extract the array contents (as Datum objects).
   deconstruct_subarray(vals, valsType, valsTypeWidth, valsTypeByValue, valsTypeAlignmentCode,
                        &valsContent, &valsNullFlags, &valsLength, startIndex - 1, endIndex);
 
-  if (startIndex > endIndex) PG_RETURN_NULL();
-
+  
   switch (valsType) {
   case INT2OID:
     v.i32 = 0;
