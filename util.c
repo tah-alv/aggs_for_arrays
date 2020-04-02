@@ -87,6 +87,12 @@ int compare_valcount(const void *a, const void *b) {
   return ((const valcount*)b)->count - ((const valcount*)a)->count;
 }
 
+void
+deconstruct_subarray(ArrayType *array,
+                     Oid elmtype,
+                     int elmlen, bool elmbyval, char elmalign,
+                     Datum **elemsp, bool **nullsp, int *nelemsp,
+                     int startIndex, int endIndex);
 
 void
 deconstruct_subarray(ArrayType *array,
