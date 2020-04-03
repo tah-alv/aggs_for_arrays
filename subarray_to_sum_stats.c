@@ -39,7 +39,8 @@ subarray_to_sum_stats(PG_FUNCTION_ARGS)
   int valsLength, nargs;
   int startIndex, endIndex;         // start and end indices
   int count;
-  int minIndex, maxIndex;
+  int minIndex = 0x7FFFFFFF;
+  int maxIndex = -1;
   int compareValue, sum, binValue, idx;
 
   bool resultIsNull = true;
@@ -105,8 +106,6 @@ subarray_to_sum_stats(PG_FUNCTION_ARGS)
   
   switch (valsType) {
   case INT4OID:
-    minIndex = startIndex + valsLength;
-    maxIndex = 0;
     compareValue = nargs > 3 ? PG_GETARG_INT32(3) : 0;
     sum = 0;
     count = 0;
@@ -126,8 +125,8 @@ subarray_to_sum_stats(PG_FUNCTION_ARGS)
           minIndex = idx;
       }
     }
-    if (minIndex == startIndex + valsLength)
-      minIndex = 0;
+    /* if (minIndex == startIndex + valsLength) */
+    /*   minIndex = 0; */
     break;
   default:
     ereport(ERROR, (errmsg("Sum stats subject must be INTEGER valued")));
