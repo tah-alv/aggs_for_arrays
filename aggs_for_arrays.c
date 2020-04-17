@@ -31,3 +31,5 @@ PG_MODULE_MAGIC;
 #include "subarray_to_maxidx_gt.c"
 #include "subarray_to_count_gt.c"
 #include "subarray_to_sum_stats.c"
+#include "subarray_to_moments.c"
+#include "subarray_to_stats.c"

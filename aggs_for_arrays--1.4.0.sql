@@ -218,3 +218,47 @@ subarray_to_sum_stats(anyarray, anyelement, int, int)
 RETURNS integer[]
 AS 'aggs_for_arrays', 'subarray_to_sum_stats'
 LANGUAGE c IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION 
+subarray_to_moments(anyarray)
+RETURNS integer[]
+AS 'aggs_for_arrays', 'subarray_to_moments'
+LANGUAGE c IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION 
+subarray_to_moments(anyarray, int)
+RETURNS integer[]
+AS 'aggs_for_arrays', 'subarray_to_moments'
+LANGUAGE c IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION 
+subarray_to_moments(anyarray, int, int)
+RETURNS integer[]
+AS 'aggs_for_arrays', 'subarray_to_moments'
+LANGUAGE c IMMUTABLE;
+
+
+CREATE OR REPLACE FUNCTION 
+subarray_to_stats(anyarray)
+RETURNS integer[]
+AS 'aggs_for_arrays', 'subarray_to_stats'
+LANGUAGE c IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION 
+subarray_to_stats(anyarray, int)
+RETURNS integer[]
+AS 'aggs_for_arrays', 'subarray_to_stats'
+LANGUAGE c IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION 
+subarray_to_stats(anyarray, int, int)
+RETURNS integer[]
+AS 'aggs_for_arrays', 'subarray_to_stats'
+LANGUAGE c IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION 
+subarray_to_stats(anyarray, int, int, int)
+RETURNS integer[]
+AS 'aggs_for_arrays', 'subarray_to_stats'
+LANGUAGE c IMMUTABLE;
+
