@@ -33,3 +33,4 @@ PG_MODULE_MAGIC;
 #include "subarray_to_sum_stats.c"
 #include "subarray_to_moments.c"
 #include "subarray_to_stats.c"
+#include "kstest.c"

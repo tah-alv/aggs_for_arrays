@@ -87,6 +87,10 @@ int compare_valcount(const void *a, const void *b) {
   return ((const valcount*)b)->count - ((const valcount*)a)->count;
 }
 
+float8 fmax(float8 a, float8 b) {
+  return (a > b) ? a : b;
+}
+
 void
 deconstruct_subarray(ArrayType *array,
                      Oid elmtype,
