@@ -33,7 +33,7 @@ kstest(PG_FUNCTION_ARGS)
   // The size of the input array:
   int na, nb;
 
-  float8 sup, sup_tmp, xmax, xmin, deltax, x, Dstat;
+  float8 Dn=0, Dcrit, sup_tmp, xmax, xmin, deltax, x;
   float8 Fa = 0, Fb = 0, Fa_prev, Fb_prev, c;
   float8 *A, *B;
   int i, ia = 0, ib = 0;
@@ -159,6 +159,8 @@ kstest(PG_FUNCTION_ARGS)
 
   /* ereport(WARNING, (errmsg(printf("xmin %f, xmax %f", xmin, xmax)))); */
 
+  // TODO: We only need to check the unique values of A and B
+  // stepping by deltax is a hack 
   deltax = (xmax - xmin) / (nx - 1);
 
   // Calculate the CDFs and supremum
@@ -177,15 +179,14 @@ kstest(PG_FUNCTION_ARGS)
 
     sup_tmp = fmax(fabs(Fa_prev - Fb), fabs(Fa - Fb));
     sup_tmp = fmax(fabs(Fb_prev - Fa), sup_tmp);
-    sup = fmax(sup_tmp, sup);
+    Dn = fmax(sup_tmp, Dn);
   }
-
-  // calculate test statistic
-  Dstat = sqrt((float8)(na*nb) / (float8)(na+nb)) * sup;
 
   pfree(A);
   pfree(B);
+
+  Dcrit = sqrt((float8)(na+nb) / (float8)(na*nb)) * c;
   
-  PG_RETURN_FLOAT8(Dstat - c);  /* Dstat - c < 0 for null hypothesis */
+  PG_RETURN_FLOAT8(Dn - Dcrit);  /* Dstat - Dcrit < 0 for null hypothesis */
 }
 
