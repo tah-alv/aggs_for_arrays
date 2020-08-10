@@ -31,30 +31,23 @@ kstest(PG_FUNCTION_ARGS)
   bool *valsNullFlagsA, *valsNullFlagsB;
 
   // The size of the input array:
-  int na, nb;
+  int na, nb, ia = 0, ib = 0;
 
-  float8 Dn=0, Dcrit, sup_tmp, xmax, xmin, deltax, x;
-  float8 Fa = 0, Fb = 0, Fa_prev, Fb_prev, c;
+  float8 Dn=0, Dcrit, x, na_inv, nb_inv;
+  float8 Fa, Fb, c;
   float8 *A, *B;
-  int i, ia = 0, ib = 0;
-  int nx, nargs;
+  int i, nargs;
 
   nargs = PG_NARGS();
   switch (nargs) {
   case 2:
     c = 1.3580986393225507;     /* KS threshold for 0.05 significance, scipy.special.kolmogi */
-    nx = 1000;
     break;
   case 3:
     c = PG_GETARG_FLOAT8(2);
-    nx = 1000;
-    break;
-  case 4:
-    c = PG_GETARG_FLOAT8(2);
-    nx = PG_GETARG_INT32(3);
     break;
   default:
-    ereport(ERROR, (errmsg("kstest accepts between 2 and 4 arguments")));
+    ereport(ERROR, (errmsg("kstest accepts between 2 and 3 arguments")));
   }
   
   if (PG_ARGISNULL(0) || PG_ARGISNULL(1)) {
@@ -154,34 +147,25 @@ kstest(PG_FUNCTION_ARGS)
   qsort(A, na, sizeof(float8), compare_float8);
   qsort(B, nb, sizeof(float8), compare_float8);
 
-  xmin = A[0] > B[0] ? B[0] : A[0];
-  xmax = A[na-1] > B[nb-1] ? A[na-1] : B[nb-1];
+  // calculate supremum
+  na_inv = 1 / (float8)na;
+  nb_inv = 1 / (float8)nb;
 
-  /* ereport(WARNING, (errmsg(printf("xmin %f, xmax %f", xmin, xmax)))); */
+  while ((ia < na) && (ib < nb)) {
+    x = A[ia] < B[ib] ? A[ia] : B[ib];
 
-  // TODO: We only need to check the unique values of A and B
-  // stepping by deltax is a hack 
-  deltax = (xmax - xmin) / (nx - 1);
-
-  // Calculate the CDFs and supremum
-  for (i = 0; i < nx; i++) {
-    x = xmin + deltax * i;
-    
     while((ia < na) && (A[ia] <= x))
       ia++;
     while((ib < nb) && (B[ib] <= x))
       ib++;
 
-    Fa_prev = Fa;
-    Fb_prev = Fb;
-    Fa = (float8)ia / na;
-    Fb = (float8)ib / nb;
-
-    sup_tmp = fmax(fabs(Fa_prev - Fb), fabs(Fa - Fb));
-    sup_tmp = fmax(fabs(Fb_prev - Fa), sup_tmp);
-    Dn = fmax(sup_tmp, Dn);
+    Fa = ia * na_inv;
+    Fb = ib * nb_inv;
+    
+    Dn = fmax(fabs(Fa - Fb), Dn);
+    
   }
-
+  
   pfree(A);
   pfree(B);
 

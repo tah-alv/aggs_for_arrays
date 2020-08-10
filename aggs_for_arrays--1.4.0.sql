@@ -274,8 +274,3 @@ RETURNS DOUBLE PRECISION
 AS 'aggs_for_arrays', 'kstest'
 LANGUAGE c IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION 
-kstest(anyarray, anyarray, float8, int)
-RETURNS DOUBLE PRECISION
-AS 'aggs_for_arrays', 'kstest'
-LANGUAGE c IMMUTABLE;
