@@ -51,7 +51,8 @@ kstest(PG_FUNCTION_ARGS)
   }
   
   if (PG_ARGISNULL(0) || PG_ARGISNULL(1)) {
-    ereport(ERROR, (errmsg("Null arrays not accepted")));
+    /* ereport(ERROR, (errmsg("Null arrays not accepted"))); */
+    PG_RETURN_NULL();
   }
 
   valsA = PG_GETARG_ARRAYTYPE_P(0);
