@@ -3,7 +3,7 @@ Datum kstest(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(kstest);
 
 /**
- * Returns the KS test result two arrays of numbers.
+ * Returns the two-sample KS test result for arrays.
  * by Todd A. Hay
  */
 Datum
@@ -32,6 +32,7 @@ kstest(PG_FUNCTION_ARGS)
 
   // The size of the input array:
   int na, nb, ia = 0, ib = 0;
+  int ma, mb;
 
   float8 Dn=0, Dcrit, x, na_inv, nb_inv;
   float8 Fa, Fb, c;
@@ -41,13 +42,22 @@ kstest(PG_FUNCTION_ARGS)
   nargs = PG_NARGS();
   switch (nargs) {
   case 2:
+    ma = 1;
+    mb = 1;
     c = 1.3580986393225507;     /* KS threshold for 0.05 significance, scipy.special.kolmogi */
     break;
-  case 3:
-    c = PG_GETARG_FLOAT8(2);
+  case 4:
+    ma = PG_GETARG_INT32(2);
+    mb = PG_GETARG_INT32(3);
+    c = 1.3580986393225507;
+    break;
+  case 5:
+    ma = PG_GETARG_INT32(2);
+    mb = PG_GETARG_INT32(3);
+    c = PG_GETARG_FLOAT8(4);
     break;
   default:
-    ereport(ERROR, (errmsg("kstest accepts between 2 and 3 arguments")));
+    ereport(ERROR, (errmsg("kstest accepts 2, 4, or 5 arguments")));
   }
   
   if (PG_ARGISNULL(0) || PG_ARGISNULL(1)) {
@@ -170,7 +180,8 @@ kstest(PG_FUNCTION_ARGS)
   pfree(A);
   pfree(B);
 
-  Dcrit = sqrt((float8)(na+nb) / (float8)(na*nb)) * c;
+  /* Dcrit = sqrt((float8)(ma*na + mb*nb) / (float8)(ma*mb*na*nb)) * c; */
+  Dcrit = sqrt((float8)(ma + mb) / (float8)(ma*mb)) * c;
   
   PG_RETURN_FLOAT8(Dn - Dcrit);  /* Dstat - Dcrit < 0 for null hypothesis */
 }
