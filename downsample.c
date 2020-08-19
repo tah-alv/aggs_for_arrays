@@ -37,10 +37,11 @@ downsample(PG_FUNCTION_ARGS)
   bool *valsNullFlags;
 
   // The size of the input array:
-  int valsLength, d;
+  int valsLength, d, nargs;
   int i, j;
+  bool do_avg;
 
-  float8 sum;
+  float8 sum, divisor;
 
   if (PG_ARGISNULL(0)) {
     ereport(ERROR, (errmsg("Null arrays not accepted")));
@@ -76,6 +77,21 @@ downsample(PG_FUNCTION_ARGS)
   // Get decimation factor
   d = PG_GETARG_INT32(1);
 
+  // Get decimation mode
+  nargs = PG_NARGS();
+  switch (nargs) {
+  case 2:                       /* sum bins by default */
+    do_avg = false;
+    break;
+  case 3:                       /* maybe average bins */
+    do_avg = PG_GETARG_BOOL(2);
+    break;
+  default:
+    ereport(ERROR, (errmsg("Too many arguments")));
+  }
+
+  divisor = do_avg ? 1.0/(float8)d : 1.0;
+
   if (valsLength % d != 0) ereport(ERROR, (errmsg("Array length must be multiple of decimation factor")));
 
   get_typlenbyvalalign(valsType, &valsTypeWidth, &valsTypeByValue, &valsTypeAlignmentCode);
@@ -86,7 +102,6 @@ downsample(PG_FUNCTION_ARGS)
 
   retContent = palloc0(sizeof(Datum) * valsLength / d);
 
-  
   switch (valsType) {
   case INT2OID:
     for (i = 0; i <= valsLength - d; i += d) {
@@ -94,7 +109,7 @@ downsample(PG_FUNCTION_ARGS)
       for (j = 0; j < d; j++){
         sum += DatumGetInt16(valsContent[i+j]);
       }
-      retContent[i/d] = Float8GetDatum(sum / d);
+      retContent[i/d] = Float8GetDatum(sum * divisor);
     }
     break;
   case INT4OID:
@@ -103,7 +118,7 @@ downsample(PG_FUNCTION_ARGS)
       for (j = 0; j < d; j++){
         sum += DatumGetInt32(valsContent[i+j]);
       }
-      retContent[i/d] = Float8GetDatum(sum / d);
+      retContent[i/d] = Float8GetDatum(sum * divisor);
     }
     break;
   case INT8OID:
@@ -112,7 +127,7 @@ downsample(PG_FUNCTION_ARGS)
       for (j = 0; j < d; j++){
         sum += DatumGetInt64(valsContent[i+j]);
       }
-      retContent[i/d] = Float8GetDatum(sum / d);
+      retContent[i/d] = Float8GetDatum(sum * divisor);
     }
     break;
   case FLOAT4OID:
@@ -121,7 +136,7 @@ downsample(PG_FUNCTION_ARGS)
       for (j = 0; j < d; j++){
         sum += DatumGetFloat4(valsContent[i+j]);
       }
-      retContent[i/d] = Float8GetDatum(sum / d);
+      retContent[i/d] = Float8GetDatum(sum * divisor);
     }
     break;
   case FLOAT8OID:
@@ -130,7 +145,7 @@ downsample(PG_FUNCTION_ARGS)
       for (j = 0; j < d; j++){
         sum += DatumGetFloat8(valsContent[i+j]);
       }
-      retContent[i/d] = Float8GetDatum(sum / d);
+      retContent[i/d] = Float8GetDatum(sum * divisor);
     }
     break;
   }

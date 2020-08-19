@@ -286,3 +286,9 @@ RETURNS DOUBLE PRECISION[]
 AS 'aggs_for_arrays', 'downsample'
 LANGUAGE c IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION 
+downsample(anyarray, int, bool)
+RETURNS DOUBLE PRECISION[]
+AS 'aggs_for_arrays', 'downsample'
+LANGUAGE c IMMUTABLE;
+
