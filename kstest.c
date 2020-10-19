@@ -33,6 +33,8 @@ kstest(PG_FUNCTION_ARGS)
   // The size of the input array:
   int na, nb, ia = 0, ib = 0;
   int ma, mb;
+  int startIndex, endIndex;         // start and end indices
+  int valsLengthA, valsLengthB;
 
   float8 Dn=0, Dcrit, x, na_inv, nb_inv;
   float8 Fa, Fb, c;
@@ -44,17 +46,26 @@ kstest(PG_FUNCTION_ARGS)
   case 2:
     ma = 1;
     mb = 1;
+    startIndex = 1;
     c = 1.3580986393225507;     /* KS threshold for 0.05 significance, scipy.special.kolmogi */
     break;
   case 4:
     ma = PG_GETARG_INT32(2);
     mb = PG_GETARG_INT32(3);
+    startIndex = 1;
     c = 1.3580986393225507;
     break;
   case 5:
     ma = PG_GETARG_INT32(2);
     mb = PG_GETARG_INT32(3);
-    c = PG_GETARG_FLOAT8(4);
+    startIndex = PG_GETARG_INT32(4);
+    c = 1.3580986393225507;
+    break;
+  case 6:
+    ma = PG_GETARG_INT32(2);
+    mb = PG_GETARG_INT32(3);
+    startIndex = PG_GETARG_INT32(4);
+    c = PG_GETARG_FLOAT8(5);
     break;
   default:
     ereport(ERROR, (errmsg("kstest accepts 2, 4, or 5 arguments")));
@@ -95,8 +106,10 @@ kstest(PG_FUNCTION_ARGS)
     ereport(ERROR, (errmsg("KS test subject must be SMALLINT, INTEGER, BIGINT, REAL, or DOUBLE PRECISION values")));
   }
 
-  na = (ARR_DIMS(valsA))[0];
-  nb = (ARR_DIMS(valsB))[0];
+  valsLengthA = (ARR_DIMS(valsA))[0];
+  valsLengthB = (ARR_DIMS(valsB))[0];
+  na = valsLengthA - (startIndex - 1);
+  nb = valsLengthB - (startIndex - 1);
 
   if ((na == 0) || (nb == 0)) PG_RETURN_NULL();
 
@@ -104,8 +117,8 @@ kstest(PG_FUNCTION_ARGS)
   get_typlenbyvalalign(valsTypeB, &valsTypeWidthB, &valsTypeByValueB, &valsTypeAlignmentCodeB);
 
   // Extract the array contents (as Datum objects).
-  deconstruct_array(valsA, valsTypeA, valsTypeWidthA, valsTypeByValueA, valsTypeAlignmentCodeA, &valsContentA, &valsNullFlagsA, &na);
-  deconstruct_array(valsB, valsTypeB, valsTypeWidthB, valsTypeByValueB, valsTypeAlignmentCodeB, &valsContentB, &valsNullFlagsB, &nb);
+  deconstruct_subarray(valsA, valsTypeA, valsTypeWidthA, valsTypeByValueA, valsTypeAlignmentCodeA, &valsContentA, &valsNullFlagsA, &valsLengthA, startIndex - 1, valsLengthA);
+  deconstruct_subarray(valsB, valsTypeB, valsTypeWidthB, valsTypeByValueB, valsTypeAlignmentCodeB, &valsContentB, &valsNullFlagsB, &valsLengthB, startIndex - 1, valsLengthB);
 
   // Extract array contents
   A = palloc(sizeof(float8) * na);

@@ -39,6 +39,7 @@ downsample(PG_FUNCTION_ARGS)
   // The size of the input array:
   int valsLength, d, nargs;
   int i, j;
+  int startIndex, endIndex, numElements;         // start and end indices
   bool do_avg;
 
   float8 sum, divisor;
@@ -76,15 +77,30 @@ downsample(PG_FUNCTION_ARGS)
 
   // Get decimation factor
   d = PG_GETARG_INT32(1);
+  if (d == 1)  PG_RETURN_ARRAYTYPE_P(vals);
 
   // Get decimation mode
   nargs = PG_NARGS();
   switch (nargs) {
-  case 2:                       /* sum bins by default */
+  case 2:                       
+    startIndex = 1;
+    endIndex = valsLength;
     do_avg = false;
     break;
   case 3:                       /* maybe average bins */
-    do_avg = PG_GETARG_BOOL(2);
+    startIndex = PG_GETARG_INT32(2);
+    endIndex = valsLength;
+    do_avg = false;
+    break;
+  case 4:                       /* maybe average bins and set startIndex*/
+    startIndex = PG_GETARG_INT32(2);
+    endIndex = PG_GETARG_INT32(3);
+    do_avg = false;
+    break;
+  case 5:                       /* maybe average bins and set startIndex / endIndex*/
+    startIndex = PG_GETARG_INT32(2);
+    endIndex = PG_GETARG_INT32(3);
+    do_avg = PG_GETARG_BOOL(4);
     break;
   default:
     ereport(ERROR, (errmsg("Too many arguments")));
@@ -92,19 +108,21 @@ downsample(PG_FUNCTION_ARGS)
 
   divisor = do_avg ? 1.0/(float8)d : 1.0;
 
-  if (valsLength % d != 0) ereport(ERROR, (errmsg("Array length must be multiple of decimation factor")));
+  numElements = endIndex - (startIndex - 1);
+  
+  if (numElements % d != 0) ereport(ERROR, (errmsg("Array length must be multiple of decimation factor")));
 
   get_typlenbyvalalign(valsType, &valsTypeWidth, &valsTypeByValue, &valsTypeAlignmentCode);
 
   // Extract the array contents (as Datum objects).
-  deconstruct_array(vals, valsType, valsTypeWidth, valsTypeByValue, valsTypeAlignmentCode,
-                    &valsContent, &valsNullFlags, &valsLength);
+  deconstruct_subarray(vals, valsType, valsTypeWidth, valsTypeByValue, valsTypeAlignmentCode,
+                       &valsContent, &valsNullFlags, &valsLength, startIndex - 1, endIndex);
 
-  retContent = palloc0(sizeof(Datum) * valsLength / d);
+  retContent = palloc0(sizeof(Datum) * numElements / d);
 
   switch (valsType) {
   case INT2OID:
-    for (i = 0; i <= valsLength - d; i += d) {
+    for (i = 0; i <= numElements - d; i += d) {
       sum = 0;
       for (j = 0; j < d; j++){
         sum += DatumGetInt16(valsContent[i+j]);
@@ -113,7 +131,7 @@ downsample(PG_FUNCTION_ARGS)
     }
     break;
   case INT4OID:
-    for (i = 0; i <= valsLength - d; i += d) {
+    for (i = 0; i <= numElements - d; i += d) {
       sum = 0;
       for (j = 0; j < d; j++){
         sum += DatumGetInt32(valsContent[i+j]);
@@ -122,7 +140,7 @@ downsample(PG_FUNCTION_ARGS)
     }
     break;
   case INT8OID:
-    for (i = 0; i <= valsLength - d; i += d) {
+    for (i = 0; i <= numElements - d; i += d) {
       sum = 0;
       for (j = 0; j < d; j++){
         sum += DatumGetInt64(valsContent[i+j]);
@@ -131,7 +149,7 @@ downsample(PG_FUNCTION_ARGS)
     }
     break;
   case FLOAT4OID:
-    for (i = 0; i <= valsLength - d; i += d) {
+    for (i = 0; i <= numElements - d; i += d) {
       sum = 0;
       for (j = 0; j < d; j++){
         sum += DatumGetFloat4(valsContent[i+j]);
@@ -140,7 +158,7 @@ downsample(PG_FUNCTION_ARGS)
     }
     break;
   case FLOAT8OID:
-    for (i = 0; i <= valsLength - d; i += d) {
+    for (i = 0; i <= numElements - d; i += d) {
       sum = 0;
       for (j = 0; j < d; j++){
         sum += DatumGetFloat8(valsContent[i+j]);
@@ -151,6 +169,6 @@ downsample(PG_FUNCTION_ARGS)
   }
 
   get_typlenbyvalalign(FLOAT8OID, &retTypeWidth, &retTypeByValue, &retTypeAlignmentCode);
-  ret = construct_array(retContent, valsLength/d, FLOAT8OID, retTypeWidth, retTypeByValue, retTypeAlignmentCode);
+  ret = construct_array(retContent, numElements/d, FLOAT8OID, retTypeWidth, retTypeByValue, retTypeAlignmentCode);
   PG_RETURN_ARRAYTYPE_P(ret);
 }

@@ -275,7 +275,13 @@ AS 'aggs_for_arrays', 'kstest'
 LANGUAGE c IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION 
-kstest(anyarray, anyarray, int, int, float8)
+kstest(anyarray, anyarray, int, int, int)
+RETURNS DOUBLE PRECISION
+AS 'aggs_for_arrays', 'kstest'
+LANGUAGE c IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION 
+kstest(anyarray, anyarray, int, int, int, float8)
 RETURNS DOUBLE PRECISION
 AS 'aggs_for_arrays', 'kstest'
 LANGUAGE c IMMUTABLE;
@@ -287,8 +293,19 @@ AS 'aggs_for_arrays', 'downsample'
 LANGUAGE c IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION 
-downsample(anyarray, int, bool)
+downsample(anyarray, int, int)
 RETURNS DOUBLE PRECISION[]
 AS 'aggs_for_arrays', 'downsample'
 LANGUAGE c IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION 
+downsample(anyarray, int, int, int)
+RETURNS DOUBLE PRECISION[]
+AS 'aggs_for_arrays', 'downsample'
+LANGUAGE c IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION 
+downsample(anyarray, int, int, int, bool)
+RETURNS DOUBLE PRECISION[]
+AS 'aggs_for_arrays', 'downsample'
+LANGUAGE c IMMUTABLE;
