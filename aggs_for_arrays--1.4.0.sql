@@ -262,50 +262,50 @@ RETURNS integer[]
 AS 'aggs_for_arrays', 'subarray_to_stats'
 LANGUAGE c IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION 
-kstest(anyarray, anyarray)
-RETURNS DOUBLE PRECISION
-AS 'aggs_for_arrays', 'kstest'
-LANGUAGE c IMMUTABLE;
+-- CREATE OR REPLACE FUNCTION 
+-- kstest(anyarray, anyarray)
+-- RETURNS DOUBLE PRECISION
+-- AS 'aggs_for_arrays', 'kstest'
+-- LANGUAGE c IMMUTABLE PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION 
-kstest(anyarray, anyarray, int, int)
-RETURNS DOUBLE PRECISION
-AS 'aggs_for_arrays', 'kstest'
-LANGUAGE c IMMUTABLE;
+-- CREATE OR REPLACE FUNCTION 
+-- kstest(anyarray, anyarray, int, int)
+-- RETURNS DOUBLE PRECISION
+-- AS 'aggs_for_arrays', 'kstest'
+-- LANGUAGE c IMMUTABLE PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION 
-kstest(anyarray, anyarray, int, int, int)
-RETURNS DOUBLE PRECISION
-AS 'aggs_for_arrays', 'kstest'
-LANGUAGE c IMMUTABLE;
+-- CREATE OR REPLACE FUNCTION 
+-- kstest(anyarray, anyarray, int, int, int)
+-- RETURNS DOUBLE PRECISION
+-- AS 'aggs_for_arrays', 'kstest'
+-- LANGUAGE c IMMUTABLE PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION 
-kstest(anyarray, anyarray, int, int, int, float8)
-RETURNS DOUBLE PRECISION
-AS 'aggs_for_arrays', 'kstest'
-LANGUAGE c IMMUTABLE;
+-- CREATE OR REPLACE FUNCTION 
+-- kstest(anyarray, anyarray, int, int, int, float8)
+-- RETURNS DOUBLE PRECISION
+-- AS 'aggs_for_arrays', 'kstest'
+-- LANGUAGE c IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION 
 downsample(anyarray, int)
 RETURNS DOUBLE PRECISION[]
 AS 'aggs_for_arrays', 'downsample'
-LANGUAGE c IMMUTABLE;
+LANGUAGE c;-- IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION 
 downsample(anyarray, int, int)
 RETURNS DOUBLE PRECISION[]
 AS 'aggs_for_arrays', 'downsample'
-LANGUAGE c IMMUTABLE;
+LANGUAGE c;-- IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION 
 downsample(anyarray, int, int, int)
 RETURNS DOUBLE PRECISION[]
 AS 'aggs_for_arrays', 'downsample'
-LANGUAGE c IMMUTABLE;
+LANGUAGE c;-- IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION 
 downsample(anyarray, int, int, int, bool)
 RETURNS DOUBLE PRECISION[]
 AS 'aggs_for_arrays', 'downsample'
-LANGUAGE c IMMUTABLE;
+LANGUAGE c; -- IMMUTABLE PARALLEL SAFE;

@@ -33,7 +33,7 @@ kstest(PG_FUNCTION_ARGS)
   // The size of the input array:
   int na, nb, ia = 0, ib = 0;
   int ma, mb;
-  int startIndex, endIndex;         // start and end indices
+  int startIndex;         // start and end indices
   int valsLengthA, valsLengthB;
 
   float8 Dn=0, Dcrit, x, na_inv, nb_inv;

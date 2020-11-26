@@ -75,13 +75,20 @@ typedef struct {
   int count;
 } valcount;
 
-int compare_float8(const void *a, const void *b);
-int compare_valcount(const void *a, const void *b);
-
-int compare_float8(const void *a, const void *b) {
-  float8 x = *(const float8*)a - *(const float8*)b;
+static int compare_float8(const void *a, const void *b);
+static int compare_float8(const void *a, const void *b) {
+  double x = *(const double*)a - *(const double*)b;
   return x < 0 ? -1 : x > 0;
 }
+
+
+/* int compare_float8(const void *a, const void *b); */
+int compare_valcount(const void *a, const void *b);
+
+/* int compare_float8(const void *a, const void *b) { */
+/*   float8 x = *(const float8*)a - *(const float8*)b; */
+/*   return x < 0 ? -1 : x > 0; */
+/* } */
 
 int compare_valcount(const void *a, const void *b) {
   return ((const valcount*)b)->count - ((const valcount*)a)->count;
